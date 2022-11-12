@@ -1,0 +1,3 @@
+Hi!
+this is sample text
+gng to store it as a hash in .mgit/object
