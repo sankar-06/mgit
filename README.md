@@ -1,6 +1,6 @@
 # mgit - *A simulation of Git*
 
-Run the jar file in the terminal by entering the command:<br>
+Create the jar file by entering the following command in the terminal<br>
 ```kotlinc Main.kt -include-runtime -d mgit.jar```<br>
 Basic functions : 
 1. mgit init - to initilaize the repository<br>
