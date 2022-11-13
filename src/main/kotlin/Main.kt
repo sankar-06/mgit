@@ -25,7 +25,7 @@ fun main(args: Array<String>) {
     else if(args[0] == "hash-object"){
         var path = System.getProperty("user.dir") + "/.mgit"
         val file = File(path)
-        if(file.isDirectory()){
+        if(file.exists()){
             if(args[1].length != 0) {
 //              Read the contents of the file
                 val filelocation = args[1]
@@ -45,6 +45,8 @@ fun main(args: Array<String>) {
 //              Write the SHA-1 Hash object to .mgit/objects
                 var hashfile = File(".mgit/objects/" + hashtext)
                 hashfile.createNewFile()
+
+                hashfile.writeText(input)
             }
         }else{
             println("No .mgit folder found. Initialize the repository to use git commands")
@@ -52,8 +54,16 @@ fun main(args: Array<String>) {
     }else if(args[0] == "cat-file") {
         if (args[1].length != 0) {
             var path = System.getProperty("user.dir") + "/.mgit/objects/" + args[1]
-            var file = File(path)
-            print(file)
+            if(File(path).exists()) {
+                val buff = File(path).bufferedReader().readLines()
+                var input: String = ""
+                buff.forEach {
+                    input = input + it + "\n"
+                }
+                print(input)
+            }else {
+                println("No hash-object found in $path")
+            }
         }
     }
 }
