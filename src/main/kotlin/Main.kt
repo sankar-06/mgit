@@ -1,6 +1,7 @@
 import java.io.File
 import java.math.BigInteger
 import java.security.MessageDigest
+import java.util.Base64
 import kotlin.reflect.typeOf
 
 fun initDir(){
@@ -32,7 +33,7 @@ fun catFile(objid:String){
             buff.forEach {
                 readText = readText + it + "\n"
             }
-            print(readText)
+            println(readText)
         }else {
             println("No hash-object found in $path")
         }
@@ -61,7 +62,7 @@ fun hashObject(filename:String) {
                 hashtext = "0$hashtext"
             }
 
-//          Write the SHA-1 Hash object to .mgit/objects
+//          Write the contents to SHA-1 Hash object to .mgit/objects
             var hashfile = File(".mgit/objects/" + hashtext)
             hashfile.createNewFile()
             hashfile.writeText(input)
@@ -73,12 +74,32 @@ fun hashObject(filename:String) {
     }
 }
 
+fun writeTree(path:String = "."){
+    var ignore = mutableListOf("./.mgit")
+    File(path).list().forEach { it ->
+        var newpath:String = path + '/' + it.toString()
+        if (newpath !in ignore) {
+            if(File(newpath).isDirectory){
+//                println("-----------------newpath : ${newpath}")
+                writeTree(newpath)
+            }else{
+                println(newpath)
+//                print(path + '/' + it.toString())
+            }
+        }
+
+    }
+}
 fun main(args: Array<String>) {
     val argparser = args[0]
     when(argparser){
         "init" -> initDir()
         "hash-object" -> hashObject(args[1])
         "cat-file" -> catFile(args[1])
+        "write-tree" -> {
+            if(args.size == 2) writeTree(args[1])
+            else writeTree()
+        }
         "--help" -> {
             println("Involked help!")
         }
