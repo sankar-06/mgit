@@ -3,6 +3,7 @@ import java.math.BigInteger
 import java.security.MessageDigest
 import java.util.Base64
 import kotlin.reflect.typeOf
+import java.nio.charset.*
 
 fun initDir(){
 //  Creating .mgit folder
@@ -23,82 +24,112 @@ fun initDir(){
     }
 }
 
-fun catFile(objid:String){
+fun catFile(objid:String,expected: String="blob"):String{
     var path = System.getProperty("user.dir") + "/.mgit/objects/"
+    var type_:String =" "
+    var content:String =" "
     if(File(path).exists()){
         path = System.getProperty("user.dir") + "/.mgit/objects/" + objid
         if(File(path).exists()) {
-            val buff = File(path).bufferedReader().readLines()
-            var readText: String = ""
-            buff.forEach {
-                readText = readText + it + "\n"
-            }
-            println(readText)
+            val obj = File(path).readBytes()
+            var (a,b) = obj.decodeToString().split("\u0000")
+            type_ = a
+            content = b
         }else {
             println("No hash-object found in $path")
         }
     }else{
         println("Initialize the repository to work with mgit")
     }
+    return content
 }
 
-fun hashObject(filename:String) {
-    var path = System.getProperty("user.dir") + "/.mgit/objects"
-    if(File(path).exists()){
-//      Read the contents of the file
-        if(File(filename).exists()){
-            val buff = File(filename).bufferedReader().readLines()
-            var input:String = ""
-            buff.forEach {
-                input = input + it + "\n"
-            }
-
-//          Generate the SHA-1 Hash object
-            val md = MessageDigest.getInstance("SHA-1")
-            val messageDigest = md.digest(input.toByteArray())
-            val no = BigInteger(1, messageDigest)
-            var hashtext = no.toString(16)
-            while (hashtext.length < 32) {
-                hashtext = "0$hashtext"
-            }
-
-//          Write the contents to SHA-1 Hash object to .mgit/objects
-            var hashfile = File(".mgit/objects/" + hashtext)
-            hashfile.createNewFile()
-            hashfile.writeText(input)
-        }else {
-            println("Unable to read the file. File does not exist")
-        }
-    }else{
-        println("Initialize the repository to work with mgit")
+fun hashString(input : ByteArray): String {
+    val md = MessageDigest.getInstance("SHA-1")
+    val messageDigest = md.digest(input)
+    val no = BigInteger(1, messageDigest)
+    var hashtext = no.toString(16)
+    while (hashtext.length < 32) {
+        hashtext = "0$hashtext"
     }
+    return hashtext.toString()
+}
+fun hashTree(input: String,type_:String="tree"):String{
+    var obj:ByteArray
+    var oid:String = ""
+
+//  Retrieve Tree object
+    obj = type_.toByteArray(Charsets.UTF_8) + "\u0000".toByteArray(Charsets.UTF_8) + input.toByteArray(Charsets.UTF_8)
+    oid = hashString(obj)
+    return oid
+}
+fun hashObject(input: ByteArray,type_:String="blob"):String{
+    var obj:ByteArray
+    var oid:String = ""
+
+//  Writing the contents to the file
+    obj = type_.toByteArray(Charsets.UTF_8) + "\u0000".toByteArray(Charsets.UTF_8) + input
+    oid = hashString(obj)
+    var hashfile = File(".mgit/objects/" + oid)
+    hashfile.createNewFile()
+    hashfile.writeBytes(obj)
+    return oid
 }
 
-fun writeTree(path:String = "."){
-    var ignore = mutableListOf("./.mgit")
+fun writeTree(path:String = "."):String{
+    var ignore = mutableListOf("./.mgit","./mgit.jar")
+    var tree_contents: MutableList<MutableList<String>> = ArrayList()
+    var type_ = ""
+    var oid = ""
+
     File(path).list().forEach { it ->
         var newpath:String = path + '/' + it.toString()
         if (newpath !in ignore) {
             if(File(newpath).isDirectory){
-//                println("-----------------newpath : ${newpath}")
+                type_ = "tree"
+                oid = hashTree(newpath)
                 writeTree(newpath)
-            }else{
-                println(newpath)
-//                print(path + '/' + it.toString())
+            }else {
+                type_ = "blob"
+                val input = File(newpath).readBytes()
+                oid = hashObject(input)
             }
+            var temp = mutableListOf<String>(type_,oid,newpath)
+            tree_contents.add(temp)
         }
-
     }
+    var tree:String = ""
+    tree_contents.forEach { item->
+        tree = tree + item[0] + " " + item[1] + " " + item[2] + "\n"
+    }
+    return hashObject(tree.toByteArray(Charsets.UTF_8),"tree")
 }
 fun main(args: Array<String>) {
     val argparser = args[0]
     when(argparser){
         "init" -> initDir()
-        "hash-object" -> hashObject(args[1])
-        "cat-file" -> catFile(args[1])
+        "hash-object" -> {
+            var path = System.getProperty("user.dir")
+            if(File(path).exists()) {
+                val filename = System.getProperty("user.dir") +'/'+ args[1]
+                if(File(filename).exists()) {
+                    val input = File(filename).readBytes()
+                    var oid = hashObject(input)
+                }else{
+                    println("No such file exisits.")
+                }
+            }else{
+                println("Initialize the mgit repository.")
+            }
+        }
+        "cat-file" -> {
+            var content = catFile(args[1])
+            println(content)
+        }
         "write-tree" -> {
             if(args.size == 2) writeTree(args[1])
-            else writeTree()
+            else
+                println(writeTree())
         }
         "--help" -> {
             println("Involked help!")
