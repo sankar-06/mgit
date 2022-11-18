@@ -87,8 +87,8 @@ fun writeTree(path:String = "."):String{
         if (newpath !in ignore) {
             if(File(newpath).isDirectory){
                 type_ = "tree"
-                oid = hashTree(newpath)
-                writeTree(newpath)
+//                oid = hashTree(newpath)
+                oid = writeTree(newpath)
             }else {
                 type_ = "blob"
                 val input = File(newpath).readBytes()
