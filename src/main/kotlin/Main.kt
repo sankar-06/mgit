@@ -28,9 +28,12 @@ fun main(args: Array<String>) {
             println(content)
         }
         "write-tree" -> {
-            if (args.size == 2) writeTree(args[1])
+            if(args.size == 2) writeTree(args[1])
             else
                 println(writeTree())
+        }
+        "read-tree" -> {
+            if(args.size == 2) readTree(args[1])
         }
         "--help" -> {
             println("Involked help!")

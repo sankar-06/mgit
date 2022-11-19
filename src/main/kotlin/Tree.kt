@@ -88,3 +88,15 @@ fun getTree(tree_oid: String,path: String=""):MutableMap<String,String>{
     return result
 }
 
+fun readTree(tree_oid:String){
+    emptyTree()
+    var result = getTree(tree_oid)
+    for ((key,value) in result ){
+        var path:String = key
+        path = path.substring(0,path.lastIndexOf("/"))
+        File(path).mkdirs()
+        val file = File(key)
+        file.createNewFile()
+        file.writeText(catFile(value))
+    }
+}
