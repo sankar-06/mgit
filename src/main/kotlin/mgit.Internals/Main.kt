@@ -37,6 +37,9 @@ fun main(args: Array<String>) {
         "read-tree" -> {
             if(args.size == 2) readTree(args[1])
         }
+        "commit" -> {
+            if(args.size == 2) print(commit(args[1]))
+        }
         "--help" -> {
             println("Involked help!")
         }

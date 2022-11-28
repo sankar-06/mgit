@@ -7,13 +7,13 @@ import java.util.Base64
 import kotlin.reflect.typeOf
 import java.nio.charset.*
 
-fun initDir(){
+fun initDir() {
 //  Creating .mgit folder
     var path = System.getProperty("user.dir") + "/.mgit"
     var file = File(path)
-    if(file.isDirectory()){
+    if (file.isDirectory()) {
         println("Reinitializing the repository")
-    }else{
+    } else {
         file.mkdir()
         println("Initializing the repository")
     }
@@ -21,7 +21,7 @@ fun initDir(){
 //  Creating the objects Directory
     path = System.getProperty("user.dir") + "/.mgit/objects"
     file = File(path)
-    if(!file.isDirectory()){
+    if (!file.isDirectory()) {
         file.mkdir()
     }
 }
@@ -69,4 +69,3 @@ fun hashObject(input: ByteArray,type_:String="blob"):String{
     hashfile.writeBytes(obj)
     return oid
 }
-
